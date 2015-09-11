@@ -1,0 +1,370 @@
+package java;
+
+import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
+
+
+/**
+ * @author Ryan Pitasky
+ *         <p>
+ *         <b>Note - </b>
+ *         <p>
+ *         <font size="20" face="verdana" color="red"><u><i><strong>
+ *         <code>WIP!!</code></strong></i></u></font>
+ */
+public class Window extends JFrame implements ActionListener, Runnable
+{
+
+	private static final long serialVersionUID = 1L;
+
+	public static long Points = 0;
+	public int h;
+	public int k;
+	public long d;
+	public long autoClickTimeDivider = (toString(false).length() + h)
+			/ (autoClickers + 1);
+
+	public String g;
+
+	public JLabel click = new JLabel();
+
+	public boolean threadstarted = false;
+	public boolean computhreadstarted;
+
+	public JButton autoClick = new JButton("Auto Clicker - 16 Points");
+	public JButton computer = new JButton("New Computer - 64 Points");
+	public JButton clicktoearn = new JButton();
+
+	public static int autoClickers = 0;
+	public static int computers = 0;
+	public int tryAutoClick = 0;
+
+	public Thread autoClickThread;
+	public Thread computerThread;
+
+	public Window()
+	{
+
+		super("Button Clicker! - By Ryan Pitasky");
+		setSize(1000, 1000);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setVisible(true);
+		final FlowLayout layout = new FlowLayout();
+		setLayout(layout);
+		setLookAndFeel();
+		clicktoearn.setActionCommand("click");
+		clicktoearn.addActionListener(this);
+		autoClick.setActionCommand("autoclick");
+		autoClick.addActionListener(this);
+		computer.setActionCommand("computer");
+		computer.addActionListener(this);
+		try
+		{
+			final Image img = ImageIO.read(getClass().getResource(
+					"/resources/big_red_button.bmp"));
+			clicktoearn.setIcon(new ImageIcon(img));
+		}
+		catch (final IOException ex)
+		{
+		}
+		try
+		{
+			final Image img = ImageIO.read(getClass().getResource(
+					"/resources/Cursor.bmp"));
+			autoClick.setIcon(new ImageIcon(img));
+		}
+		catch (final IOException ex)
+		{
+		}
+		add(clicktoearn);
+		add(click);
+		add(autoClick);
+		add(computer);
+		autoClick.setEnabled(false);
+		computer.setEnabled(false);
+		setClickValue(click);
+	}
+
+	public void setClickValue(JLabel Click)
+	{
+
+		try
+		{
+			setValue(Click);
+		}
+		catch (final NullPointerException npe)
+		{
+			// ignore
+		}
+	}
+
+	public void autoClickerLogic()
+	{
+
+		if (Points > 15 + autoClickers * 1.5)
+		{
+			autoClick.setEnabled(true);
+		}
+		else
+		{
+
+			autoClick.setEnabled(false);
+		}
+	}
+
+	public void computerLogic()
+	{
+
+		if (Points > 63)
+		{
+			computer.setEnabled(true);
+		}
+		else
+		{
+			computer.setEnabled(false);
+		}
+	}
+
+	public long autoClickClickingLogicThing()
+	{
+
+		if (!threadstarted)
+		{
+			try
+			{
+				start(autoClickThread);
+			}
+			catch (final Exception e)
+			{
+				e.printStackTrace();
+			}
+
+		}
+		return Points;
+	}
+
+	public long computerClickingLogicThing()
+	{
+
+		if (!computhreadstarted)
+		{
+			try
+			{
+				start(computerThread);
+			}
+			catch (final Exception e)
+			{
+				e.printStackTrace();
+			}
+		}
+
+		return Points;
+	}
+
+	public void start(Thread th)
+	{
+
+		if (th == computerThread)
+		{
+			if (computerThread == null)
+			{
+				computerThread = new Thread(this);
+				computerThread.start();
+			}
+		}
+		else
+		{
+			if (th == autoClickThread)
+			{
+				if (autoClickThread == null)
+				{
+					autoClickThread = new Thread(this);
+					autoClickThread.start();
+				}
+			}
+		}
+	}
+
+	private void setValue(JLabel jlbl)
+	{
+
+		jlbl.setText(toString(true));
+
+	}
+
+	public void setLookAndFeel()
+	{
+
+		try
+		{
+			UIManager.setLookAndFeel("com.sun.java.swing.plaf.nimbus.NimbusLookAndFeel");
+		}
+		catch (final ClassNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+		catch (final InstantiationException e)
+		{
+
+			e.printStackTrace();
+		}
+		catch (final IllegalAccessException e)
+		{
+
+			e.printStackTrace();
+		}
+		catch (final UnsupportedLookAndFeelException e)
+		{
+
+			e.printStackTrace();
+		}
+
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent event)
+	{
+
+		final String command = event.getActionCommand();
+		final Object source = event.getSource();
+		if (command.equals("click"))
+		{
+			if (source == clicktoearn)
+			{
+				addPoints(1);
+				autoClickerLogic();
+				computerLogic();
+				setClickValue(click);
+			}
+		}
+
+		if (source == autoClick)
+		{
+			System.out.println("Enabled");
+			setClickValue(click);
+			subtractPoints(16 + autoClickers);
+			autoClickers = autoClickers + 1;
+			autoClickerLogic();
+			autoClickClickingLogicThing();
+			computerLogic();
+			setClickValue(click);
+
+		}
+
+		if (command.equals("computer"))
+		{
+			if (source == computer)
+			{
+				subtractPoints(64);
+				computerLogic();
+				autoClickerLogic();
+			}
+		}
+	}
+
+	public void addPoints(int i)
+	{
+
+		Points = Points + i;
+	}
+
+	public void subtractPoints(int k)
+	{
+
+		Points = Points - k;
+		setClickValue(click);
+	}
+
+	public long getPoints()
+	{
+
+		return Points;
+	}
+
+	public String toString(boolean b)
+	{
+
+		if (b)
+		{
+			g = "Clicks = " + Points + "";
+		}
+		else
+		{
+			g = "" + autoClickers + "";
+		}
+
+		return g;
+	}
+
+	public static void main(String[] arguments)
+	{
+
+		new Window();
+	}
+
+	@Override
+	public void run()
+	{
+
+		System.out.println("hi");
+		threadstarted = true;
+		if (Thread.currentThread() == autoClickThread)
+		{
+			System.out.print("hi");
+			while (true)
+			{
+				for (int i = 0; i < autoClickers; i++)
+				{
+					try
+					{
+						Thread.sleep(1600);
+					}
+					catch (final InterruptedException e)
+					{
+						e.printStackTrace();
+					}
+					Points = Points + autoClickers;
+					setClickValue(click);
+					computerLogic();
+					autoClickerLogic();
+				}
+			}
+		}
+		else
+		{
+			if (Thread.currentThread() == computerThread)
+			{
+				while (true)
+				{
+					for (int i = 0; i < computers; i++)
+					{
+						try
+						{
+							Thread.sleep(800);
+						}
+						catch (final InterruptedException e)
+						{
+							e.printStackTrace();
+						}
+						Points = Points + computers;
+						setClickValue(click);
+						computerLogic();
+						autoClickerLogic();
+					}
+				}
+			}
+		}
+	}
+}
+
